@@ -19,9 +19,9 @@ process minimap2 {
 	// container "oras://community.wave.seqera.io/library/minimap2:2.30--3bf3d6cb39a98dae"
 
     input:
-	read: Path // Path for DNA sequence fastq files
+	read_file: Path // Path for DNA sequence fastq files
 	reference: Path // Path for reference genome
-	name: String // List of sample names
+	name: String // Sample name
 	
 	output:
 	aligned_read: Path = file("${name}_aligned.sam")
@@ -37,7 +37,7 @@ process minimap2 {
 	minimap2 \\
 	-ax map-ont \\
 	${reference} \\
-	${read} \\
+	${read_file} \\
 	-o "${name}_aligned.sam"
     """
 }

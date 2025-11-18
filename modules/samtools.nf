@@ -19,8 +19,8 @@ process samtools {
 
 	// Declare inputs required for the process
     input:
-	aligned_read: Path
-	name: String
+	aligned_read_file: Path // Path for aligned reads after minimap2
+	name: String // Sample name
 	
 	// Declare outputs
 	output:
@@ -30,27 +30,10 @@ process samtools {
     """
 	# View and convert file from SAM to BAM format
 	# Sort alignments and outputs the file in BAM format
-	samtools view -b "${aligned_read}" | samtools sort -o "${name}_aligned_sorted.bam"
+	samtools view -b "${aligned_read_file}" | samtools sort -o "${name}_aligned_sorted.bam"
 	# Index BAM file for fast random access
 	samtools index "${name}_aligned_sorted.bam"
 	# Counts the number of alignments for each FLAG type
 	samtools flagstat "${name}_aligned_sorted.bam" > "${name}_alignment_stats.txt"
-    """
-}
-
-process samtools_view_sort {
-	tag "${name}"
-
-	// Declare inputs required for the process
-    input:
-	aligned_sorted_read: Path
-	name: String
-	
-	// Declare outputs
-	output:
-	aligned_sorted_read: Path = file("${aligned_sorted_read}")
-
-    script:
-    """
     """
 }
