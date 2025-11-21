@@ -7,7 +7,7 @@ The aligned sequence is output as a SAM file.
 nextflow.preview.types = true
 
 process minimap2 {
-	tag "${name}"
+	tag "${sample_name}"
 
 	// conda 'bioconda::minimap2'
 	// conda (params.enable_conda ? 'bioconda::minimap2=2.30' : null)
@@ -19,12 +19,14 @@ process minimap2 {
 	// container "oras://community.wave.seqera.io/library/minimap2:2.30--3bf3d6cb39a98dae"
 
     input:
-	read_file: Path // Path for DNA sequence fastq files
+	(read_file, sample_name): Tuple<Path, String> // Path for DNA sequence fastq files
 	reference: Path // Path for reference genome
-	name: String // Sample name
+	// (file, sample_name): Tuple<Path, String>
+	// name: String // Sample name
 	
 	output:
-	aligned_read: Path = file("${name}_aligned.sam")
+	aligned_read: Path = file("${sample_name}_aligned.sam")
+	sample_name: String = sample_name
 
 	/*
 	Run minimap, mapping reads to a reference and outputs a sam file
@@ -38,6 +40,6 @@ process minimap2 {
 	-ax map-ont \\
 	${reference} \\
 	${read_file} \\
-	-o "${name}_aligned.sam"
+	-o "${sample_name}_aligned.sam"
     """
 }

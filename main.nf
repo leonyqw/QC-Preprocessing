@@ -13,7 +13,7 @@ nextflow.preview.types = true
 // Pipeline parameters
 params {
 	read_files: String = "${projectDir}/data/*.fastq"
-	name: String = "SAMPLE_1" //May change depending on how samples are named?
+	// name: String = "SAMPLE_1" //May change depending on how samples are named?
 	phagemid_ref: Path = "${projectDir}/data/reference_files/fab_phagemid.fa"
 	matchbox_path: Path = "${projectDir}/matchbox/matchbox"
 	// matchbox_path=/vast/projects/antibody_sequencing/matchbox/target/release/matchbox
@@ -27,29 +27,35 @@ include { samtools } from './modules/samtools'
 include { matchbox } from './modules/matchbox'
 include { riot } from './modules/riot'
 
+// Create function to get the barcode from the file name
+def get_name(file) {
+    return (file.baseName =~ /barcode\d+/)[0]
+}
+
 workflow {
-	// Create channel for the read files and reference genome file
-	read_files = channel.fromPath(params.read_files)
-	// ref = channel.value(params.phagemid_ref)
 
-	// Combine the read files with the phagemid reference
-	// Do I need to include the reference, or can I use this in the process doc?
-	// input_ch = read_files.combine(phagemid_ref)
+	// Create channel for the read files and extract the barcode from file name as the sample name
+	// read_files = channel.fromPath(params.read_files)
 
-	// QC: % aligning to the reference (gDNA/helper phage contamination)
-	minimap2(read_files, params.phagemid_ref, params.name)
-	samtools(minimap2.out.aligned_read, params.name)
+	files = channel.fromPath(params.read_files)
+	.map {
+		file -> tuple(file, get_name(file))
+	}
 
-	// Extract with matchbox ?? what does this do
-	matchbox(read_files, 
-				params.matchbox_path, 
-				params.matchbox_antibody_preprocess_script,
-				params.name)
+	// QC: Identify % aligning to the reference (gDNA/helper phage contamination)
+	minimap2(files, params.phagemid_ref)
+	// Convert and index the SAM file format to BAM file format
+	samtools(minimap2.out.aligned_read, minimap2.out.sample_name)
 
-	// Run riot to...??
-	riot(matchbox.out.heavy_file, matchbox.out.light_file, params.name) 
+	// Extract heavy and light chain pairs from the reads, and output summary stats
+	matchbox(files, 
+				// params.matchbox_path, 
+				params.matchbox_antibody_preprocess_script)
 
-    // publish:
+	// Annotate heavy and light chain sequences
+	riot(matchbox.out.heavy_file, matchbox.out.light_file, matchbox.out.sample_name) 
+
+    // // publish:
     // samples = ch_samples
 }
 
@@ -58,4 +64,3 @@ workflow {
 //         path { sample -> "fastq/${sample.id}/" }
 //     }
 // }
-

@@ -1,5 +1,5 @@
 /*
-Utilize matchbox to extract heavy and light chains
+Utilize matchbox to extract only the variable heavy and light chains
 */
 
 //Enable typed processes
@@ -10,28 +10,32 @@ process matchbox {
 
 	// Declare inputs required for the process
     input:
-    read_file: Path // Path for DNA sequence fastq files
-	matchbox_path: Path // Path to matchbox package
+    (read_file, sample_name): Tuple<Path, String> // Path for DNA sequence fastq files
+	// matchbox_path: Path // Path to matchbox package
     matchbox_script: Path // Path to matchbox script
-	sample_name: String // Sample name
+	// sample_name: String // Sample name
 	
 	// Declare outputs
 	output:
 	matchbox_stats: Path = file("${sample_name}_extract_stats.txt")
     heavy_file: Path = file("${sample_name}_heavy.fasta")
     light_file: Path = file("${sample_name}_light.fasta")
+    sample_name: String = sample_name
 
     /*
-    Run matchbox script, output heavy and light chain reads, and statistics
+    Run matchbox script, output only heavy and light chain reads, and statistics
     -s  Execute the matchbox script
     -e  Include error tolerance of 0.3 for insertions, deletions and substitutions
     -a  Set seqid argument as a string
     */
     script:
+    // ${matchbox_path} \\
     """
-	${matchbox_path} \\
+	matchbox \\
     -s ${matchbox_script} -e 0.3 \\
     -a "seqid='${sample_name}'" \\
     ${read_file} > "${sample_name}_extract_stats.txt"
     """
 }
+//--with-reverse-complement
+//Remove text and use csv
