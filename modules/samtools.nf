@@ -26,6 +26,7 @@ process samtools {
 	output:
 	aligned_sorted_read: Path = file("${sample_name}_aligned_sorted.bam")
 	index: Path = file("${sample_name}_aligned_sorted.bam.bai")
+	aligned_stats: Path = file("${sample_name}_alignment_stats.tsv")
 
     script:
     """
@@ -36,6 +37,6 @@ process samtools {
 	samtools index "${sample_name}_aligned_sorted.bam"
 	
 	# Counts the number of alignments for each FLAG type
-	samtools flagstat "${sample_name}_aligned_sorted.bam" > "${sample_name}_alignment_stats.txt"
+	samtools flagstat -O tsv "${sample_name}_aligned_sorted.bam" > "${sample_name}_alignment_stats.tsv"
     """
 }

@@ -14,30 +14,25 @@ process matchbox {
 	(sample_name, read_file): Tuple<String, Path>
 	// matchbox_path: Path // Path to matchbox package
     matchbox_script: Path // Path to matchbox script
-	// sample_name: String // Sample name
 	
 	// Declare outputs
 	output:
 	matchbox_stats: Path = file("${sample_name}_count.csv")
-    // heavy_file: Path = file("${sample_name}_heavy.fasta")
-    // light_file: Path = file("${sample_name}_light.fasta")
-    // sample_name: String = sample_name
     matchbox_files = tuple(sample_name, file("${sample_name}_heavy.fasta"), file("${sample_name}_light.fasta"))
 
     /*
     Run matchbox script, output only heavy and light chain reads, and statistics
     -s  Execute the matchbox script
     -e  Include error tolerance of 0.3 (30%) for insertions, deletions and substitutions
-    -a  Set seqid argument as a string
+    -a  Set seqid argument as the sample name
+    --with-reverse-complement   Also process the reverse complement of the reads over the script
     */
     script:
     // ${matchbox_path} \\
     """
 	matchbox \\
     -s ${matchbox_script} -e 0.3 \\
-    -a "seqid='${sample_name}'" \\
+    -a "seqid='${sample_name}'" --with-reverse-complement\\
     ${read_file}
     """
 }
-//--with-reverse-complement
-//Remove text and use csv

@@ -23,8 +23,6 @@ process minimap2 {
 	reference: Path // Path for reference genome
 	
 	output:
-	// aligned_read: Path = file("${sample_name}_aligned.sam")
-	// sample_name: String = sample_name
 	minimap_out = tuple(sample_name, file("${sample_name}_aligned.sam"))
 
 	/*

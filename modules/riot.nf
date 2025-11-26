@@ -13,9 +13,6 @@ process riot {
     input:
     // Tuple for sample name, and paths for heavy chain and light chain files
 	(sample_name, heavy_file, light_file): Tuple<String, Path, Path>
-    // heavy_file: Path // Path for heavy chain file
-    // light_file: Path // Path for light chain file
-	// sample_name: String // Sample name
 	
 	// Declare outputs
 	output:

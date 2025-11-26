@@ -55,9 +55,9 @@ workflow {
 
 	// Publish outputs
     publish:
-    sam_file = minimap_out
 	bam_file = sam_out.aligned_sorted_read
 	bam_index = sam_out.index
+	aligned_stats = sam_out.aligned_stats
 	matchbox_stats = matchbox_out.matchbox_stats
 	matchbox_files = matchbox_out.matchbox_files
 	annotated_hc = riot_out.annot_heavy
@@ -71,25 +71,25 @@ workflow {
 }
 
 output {
-    sam_file {
-        path "SAM_files"
-    }
 	bam_file {
-        path "BAM_files"
+        path "1. aligned reads"
     }
 	bam_index {
-        path "BAM_files"
+        path "1. aligned reads"
     }
+	aligned_stats {
+		path "1. aligned reads/stats"
+	}
 	matchbox_stats {
-		path "matchbox"
+		path "2. extracted reads/counts"
 	}
 	matchbox_files {
-		path "matchbox"
+		path "2. extracted reads"
 	}
 	annotated_hc {
-		path "riot"
+		path "3. annotated reads"
 	}
 	annotated_lc {
-		path "riot"
+		path "3. annotated reads"
 	}
 }
