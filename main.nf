@@ -6,21 +6,6 @@
 //Enable typed processes
 nextflow.preview.types = true
 
-// Validate correct version is used
-// if( !nextflow.version.matches('>=25.10') ) {
-//     error "This workflow requires Nextflow version 23.10 or greater -- You are running version $nextflow.version"
-// }
-
-// // Pipeline parameters
-// params {
-// 	read_files: String = "${projectDir}/data/*.fastq"
-// 	phagemid_ref: Path = "${projectDir}/data/reference_files/fab_phagemid.fa"
-// 	matchbox_path: Path = "${projectDir}/matchbox/matchbox"
-// 	// matchbox_path=/vast/projects/antibody_sequencing/matchbox/target/release/matchbox
-// 	matchbox_antibody_preprocess_script: Path = "${projectDir}/matchbox/antibody_preprocess.mb"
-// 	// matchbox_script=/vast/projects/antibody_sequencing/PC008/antibody_preprocess.mb
-// }
-
 // Pipeline parameters
 params {
 	read_files: String
@@ -43,8 +28,12 @@ def get_name(file) {
 }
 
 workflow {
-
 	main:
+	// // Validate correct version is used
+	// if( !nextflow.version.matches('>=25.10.2') ) {
+    // error "This workflow requires Nextflow version 23.10 or greater -- You are running version $nextflow.version"
+	// }
+
 	// Create channel for the read files and extract the barcode from file name as the sample name
 	files = channel.fromPath(params.read_files)
 	.map {
