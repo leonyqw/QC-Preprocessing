@@ -22,9 +22,9 @@ params {
 // Import processes or subworkflows to be run in the workflow
 include { header } from './modules/header'
 include { minimap2 } from './modules/minimap2'
-include { samtools } from './modules/samtools'
-include { matchbox } from './modules/matchbox'
-include { riot } from './modules/riot'
+// include { samtools } from './modules/samtools'
+// include { matchbox } from './modules/matchbox'
+// include { riot } from './modules/riot'
 
 // Create function to get the barcode from the file name
 def get_name(file) {
