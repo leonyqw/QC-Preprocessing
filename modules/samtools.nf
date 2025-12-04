@@ -11,7 +11,7 @@ process samtools {
 	// Enable conda and install samtools if conda profile is set
 	conda (params.enable_conda ? 'bioconda::samtools=1.22.1' : null)
 
-	// Use Singularity container or pull from Docker container for samtools (linux/amd64) if singularity profile is enabled
+	// Use Singularity container or pull from Docker container for samtools v1.22.1 (linux/amd64) if singularity profile is enabled
 	container "${ (workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container) ?
     'oras://community.wave.seqera.io/library/samtools:1.22.1--9a10f06c24cdf05f' :
     'community.wave.seqera.io/library/samtools:1.22.1--eccb42ff8fb55509' }"
