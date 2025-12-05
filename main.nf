@@ -2,7 +2,6 @@
 
 //Enable strict syntax
 //export NXF_SYNTAX_PARSER=v2
-//export NXF_DATE_FORMAT="yyyy-MM-dd HH:mm:ss"
 
 //Enable typed processes
 nextflow.preview.types = true
@@ -11,8 +10,7 @@ nextflow.preview.types = true
 params {
 	read_files: String
 	phagemid_ref: Path
-	matchbox_antibody_preprocess_script: Path
-	// matchbox_script=/vast/projects/antibody_sequencing/PC008/antibody_preprocess.mb
+	matchbox_script: Path
 	help: Boolean
 	enable_conda: Boolean
 }
@@ -29,24 +27,25 @@ def get_name(file) {
     return (file.baseName =~ /barcode\d+/)[0]
 }
 
-/// Help function 
-// def helpMessage() {
-//     log.info"""
-//   Usage:  nextflow run main.nf --input <samples.tsv> 
+// Help function 
+def helpMessage() {
+    log.info"""
+Usage:  nextflow run main.nf --read_files <samples.fastq> --phagemid_ref <reference.fa> --matchbox_script <script.mb>
 
-//   Required Arguments:
+Required Arguments:
+-- read_files		Specify full path of read file(s) location.
+-- phagemid_ref		Specify location of the reference genome.
+-- matchbox_script	Specify matchbox script.
 
-//   --input		Specify full path and name of sample input file.
-
-//   Optional Arguments:
-
-//   --outdir	Specify path to output directory. 
-	
-// """.stripIndent()
-// }
+Optional Arguments:
+--enable_conda		Specify whether to enable conda or not. 
+--profile		Specify the profile to run nextflow through. Options: <standard, wehi, conda, singularity, local>.
+""".stripIndent()
+}
 
 workflow {
 	main:
+
 	// // Validate correct version is used
 	// if( !nextflow.version.matches('>=25.10.2') ) {
     // error "This workflow requires Nextflow version 23.10 or greater -- You are running version $nextflow.version"
@@ -55,17 +54,17 @@ workflow {
 	// Print pipeline information
 	header()
 
-	if ( params.help ) { 
-	// if ( params.help || params.input == false ) {   
+	if ( params.help ) {
 	// Invoke the help function above and exit
-	// helpMessage()
-	println "Help message to be printed"
+	helpMessage()
 	exit 1
-
-	// If none of the above are a problem, then run the workflow
-	} 
+	}
 	
+	// If none of the above are a problem, then run the workflow
 	else {
+
+	// CHECK PARAMETERS
+	//  || params.read_files == null 
 
 	// Create channel for the read files and extract the barcode from file name as the sample name
 	files = channel.fromPath(params.read_files)
@@ -80,7 +79,7 @@ workflow {
 	sam_out = samtools(minimap_out)
 
 	// Extract heavy and light chain pairs from the reads, and output summary stats
-	matchbox_out = matchbox(files, params.matchbox_antibody_preprocess_script)
+	matchbox_out = matchbox(files, params.matchbox_script)
 
 	// Annotate heavy and light chain sequences
 	riot_out = riot(matchbox_out.matchbox_files) 

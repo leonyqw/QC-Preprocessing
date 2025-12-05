@@ -21,6 +21,7 @@ process minimap2 {
 	(sample_name, read_file): Tuple<String, Path>
 	reference: Path // Path for reference genome
 	
+	// Output tuple with sample name and sam file
 	output:
 	minimap_out = tuple(sample_name, file("${sample_name}_aligned.sam"))
 

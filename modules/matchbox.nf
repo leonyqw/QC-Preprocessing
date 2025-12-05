@@ -1,5 +1,5 @@
 /*
-Utilize matchbox to extract only the variable heavy and light chains
+Utilize matchbox to extract only the variable heavy and light chains.
 */
 
 //Enable typed processes
@@ -30,7 +30,6 @@ process matchbox {
     --with-reverse-complement   Also process the reverse complement of the reads over the script
     */
     script:
-    // ${matchbox_path} \\
     """
 	matchbox \\
     -s ${matchbox_script} -e 0.3 \\

@@ -16,12 +16,11 @@ process samtools {
     'oras://community.wave.seqera.io/library/samtools:1.22.1--9a10f06c24cdf05f' :
     'community.wave.seqera.io/library/samtools:1.22.1--eccb42ff8fb55509' }"
 
-	// Declare inputs required for the process
     input:
 	// Tuple for sample name, and path for aligned reads after minimap2
 	(sample_name, aligned_read_file): Tuple<String, Path> 
 	
-	// Declare outputs
+	// Output aligned reads, bam index file, and aligned QC statistics
 	output:
 	aligned_sorted_read: Path = file("${sample_name}_aligned_sorted.bam")
 	index: Path = file("${sample_name}_aligned_sorted.bam.bai")

@@ -1,6 +1,6 @@
 /*
 Utilize riot to annotate antibody heavy and light chain DNA sequences.
-E.g. provides information on sequence and germline alignment, V(D)J & C sequence and amino acid alignment, and FWR and CDR regions
+E.g. provides information on sequence and germline alignment, V(D)J & C sequence and amino acid alignment, and FWR and CDR regions.
 */
 
 //Enable typed processes
