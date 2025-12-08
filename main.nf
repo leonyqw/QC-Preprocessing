@@ -43,6 +43,13 @@ Optional Arguments:
 """.stripIndent()
 }
 
+// Function for parameter validation
+def param_validation() {
+	channel.fromPath(params.read_files, checkIfExists: true)
+	channel.fromPath(params.phagemid_ref, checkIfExists: true)
+	channel.fromPath(params.matchbox_script, checkIfExists: true)
+}
+
 workflow {
 	main:
 
@@ -51,20 +58,19 @@ workflow {
     // error "This workflow requires Nextflow version 23.10 or greater -- You are running version $nextflow.version"
 	// }
 
-	// Print pipeline information
-	header()
-
+	// Invoke help function if required
 	if ( params.help ) {
-	// Invoke the help function above and exit
 	helpMessage()
 	exit 1
 	}
 	
 	// If none of the above are a problem, then run the workflow
 	else {
-
-	// CHECK PARAMETERS
-	//  || params.read_files == null 
+	// Print pipeline information
+	header()
+	
+	// Validate parameters
+	param_validation()
 
 	// Create channel for the read files and extract the barcode from file name as the sample name
 	files = channel.fromPath(params.read_files)
@@ -110,11 +116,11 @@ workflow {
 	results		: ${workflow.outputDir}
 
 	=====================================================================================
-	"""
+	""".stripIndent()
 	
 	// Error message
 	onError:
-    log.error "Error: Pipeline execution stopped with the following message: ${workflow.errorMessage}"
+    log.error "Error: Pipeline execution stopped with the following message: ${workflow.errorMessage}".stripIndent()
 }
 
 // Set output paths
