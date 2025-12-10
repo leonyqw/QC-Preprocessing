@@ -30,16 +30,18 @@ def get_name(file) {
 // Help function 
 def helpMessage() {
     log.info"""
-Usage:  nextflow run main.nf --read_files <samples.fastq> --phagemid_ref <reference.fa> --matchbox_script <script.mb>
+Usage:  nextflow run main.nf --read_files [input path of fastq files] --phagemid_ref [reference genome] --matchbox_script [matchbox script]
 
 Required Arguments:
--- read_files		Specify full path of read file(s) location.
--- phagemid_ref		Specify location of the reference genome.
--- matchbox_script	Specify matchbox script.
+--read_files		: Specify full path of read file(s) location.
+--phagemid_ref		: Specify location of the reference genome.
+--matchbox_script	: Specify matchbox script.
 
 Optional Arguments:
---enable_conda		Specify whether to enable conda or not. 
---profile		Specify the profile to run nextflow through. Options: <standard, wehi, conda, singularity, local>.
+--enable_conda		: Specify whether to enable conda or not. 
+-profile		: Specify the profile to run nextflow through.
+			  Options - [standard, wehi, conda, singularity, local]. 
+			  Standard profile is used by default if argument is not set.
 """.stripIndent()
 }
 
