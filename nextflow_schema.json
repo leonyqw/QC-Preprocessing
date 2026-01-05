@@ -13,17 +13,20 @@
         "phagemid_ref": {
             "type": "string",
             "default": "/vast/scratch/users/wang.leo/preprocessing/data/reference_files/fab_phagemid.fa",
-            "description": "Specify location of the reference genome in fa format"
+            "description": "Specify location of the reference genome in fa format",
+            "format": "file-path"
         },
         "matchbox_script": {
             "type": "string",
             "default": "/vast/scratch/users/wang.leo/preprocessing/matchbox/antibody_preprocess.mb",
-            "description": "Specify location of matchbox script"
+            "description": "Specify location of matchbox script",
+            "format": "file-path"
         },
         "output_dir": {
             "type": "string",
             "default": "results",
-            "description": "Specify directory for outputs"
+            "description": "Specify directory for outputs",
+            "format": "directory-path"
         }
     },
     "required": [
