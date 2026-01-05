@@ -15,6 +15,7 @@ Required Arguments:
 --read_files		: Specify full path of read file(s) location.
 --phagemid_ref		: Specify location of the reference genome.
 --matchbox_script	: Specify matchbox script.
+--matchbox_parameters	: Specify parameters for matchbox script.
 
 Optional Arguments:
 --output_dir		: Where the output files will be written to (default: "$projectDir/results").
