@@ -40,7 +40,7 @@ data_list <- lapply(files, fread, na.strings = c("N/A"))
 names(data_list) <- str_replace(basename(files), "_alignment_stats.tsv", "")
 
 # Combine datasets together and rename columns
-combined_aligned_stats <- rbindlist(data_list, idcol = "barcode", fill = TRUE)
+combined_aligned_stats <- rbindlist(data_list, idcol = "sample_id", fill = TRUE)
 combined_aligned_stats <- rename(combined_aligned_stats, "QC_pass" = V1, "QC_fail" = V2, "category" = V3)
 
 # Rename and extract required rows
@@ -61,14 +61,15 @@ combined_aligned_stats <- combined_aligned_stats %>%
 
 ```{r}
 combined_aligned_stats %>%
-    distinct(barcode) %>%
+    distinct(sample_id) %>%
     summarise(n = n())
 ```
 
 ```{r}
 #| label: total-reads
 
-ggplot(data = filter(combined_aligned_stats, category == "total"), aes(y = barcode, x = QC_pass)) +
+ggplot(data = filter(combined_aligned_stats, category == "total"), 
+aes(y = sample_id, x = QC_pass)) +
     geom_col()
 ```
 
@@ -102,7 +103,7 @@ counts_list <- lapply(counts_files, fread, na.strings = c("N/A"))
 names(counts_list) <- str_replace(basename(counts_files), "_count.csv", "")
 
 # Combine datasets together and rename columns
-combined_counts <- rbindlist(counts_list, idcol = "barcode", fill = TRUE)
+combined_counts <- rbindlist(counts_list, idcol = "sample_id", fill = TRUE)
 combined_counts <- rename(combined_counts, "sequence" = value)
 
 # Divide total reads by 2 (as duplicated when using reverse complement in matchbox)
@@ -127,8 +128,8 @@ c <- full_join(a, b)
 # Plot total reads from matchbox
 combined_counts %>%
     filter(sequence == "total reads") %>%
-    mutate(barcode = fct_reorder(barcode, count)) %>%
-    ggplot(aes(y = barcode, x = count)) +
+    mutate(sample_id = fct_reorder(sample_id, count)) %>%
+    ggplot(aes(y = sample_id, x = count)) +
     geom_col()
 
 # Plot sequence counts as fill on each column
@@ -137,30 +138,30 @@ combined_counts %>%
     ggplot() +
     geom_col(
         data = combined_counts[(combined_counts[, sequence] == "total reads"), ],
-        aes(y = fct_reorder(barcode, count), x = count)
+        aes(y = fct_reorder(sample_id, count), x = count)
     ) +
     geom_col(
         data = combined_counts[(combined_counts[, sequence] == "rotated"), ],
-        aes(y = fct_reorder(barcode, count), x = count),
+        aes(y = fct_reorder(sample_id, count), x = count),
         fill = "blue"
     ) +
     geom_col(
         data = combined_counts[(combined_counts[, sequence] == "heavy"), ],
-        aes(y = fct_reorder(barcode, count), x = count),
+        aes(y = fct_reorder(sample_id, count), x = count),
         fill = "green"
     ) +
     geom_col(
         data = combined_counts[(combined_counts[, sequence] == "heavy + kappa" | combined_counts[, sequence] == "heavy + lambda"), ],
-        aes(y = fct_reorder(barcode, count), x = count),
+        aes(y = fct_reorder(sample_id, count), x = count),
         fill = "pink"
     ) +
-    xlab("Number of sequences")
+    labs(x = "Number of sequences")
 # ADD legend
 
 
 # Plot proportion of sequences extracted through matchbox
 combined_counts_prop <- combined_counts %>%
-    group_by(barcode) %>%
+    group_by(sample_id) %>%
     mutate(prop = count / count[sequence == "total reads"]) %>%
     ungroup()
 
@@ -169,28 +170,50 @@ combined_counts_prop <- combined_counts_prop %>%
         sequence %in% c("heavy + kappa", "heavy + lambda") ~ "heavy + light",
         .default = sequence
     )) %>%
-    group_by(barcode, sequence) %>%
+    group_by(sample_id, sequence) %>%
     summarise(prop = sum(prop)) %>%
     ungroup() %>%
     mutate(sequence = ordered(sequence, levels = c("total reads", "rotated", "heavy", "heavy + light"))) %>%
-    group_by(barcode) %>%
-    arrange(barcode, desc(sequence)) %>%
+    group_by(sample_id) %>%
+    arrange(sample_id, desc(sequence)) %>%
     mutate(diff = prop - lag(prop, default = first(prop))) %>%
     ungroup() %>%
     select(-prop) %>%
-    right_join(combined_counts_prop, by = join_by(barcode, sequence)) %>%
+    right_join(combined_counts_prop, by = join_by(sample_id, sequence)) %>%
     mutate(diff = ifelse(is.na(diff), prop, diff))
 
 combined_counts_prop %>%
     ggplot() +
     geom_col(
-        aes(y = fct_reorder(barcode, count), x = diff, fill = sequence),
+        aes(y = fct_reorder(sample_id, count), x = diff, fill = sequence),
         position = "stack"
     ) +
-    xlab("Proportion of sequences")
+    labs(x = "Proportion of sequences", y = "Sample", fill = "Sequence")
 # Change light sequence colors
+
+#### Why is heavy reads less than heavy + light totals?
 ```
 
 ## 3. Annotated reads
 
-The table below provides a summary after mapping and alignment of target antibody sequences to the reference genome provided, using the [*minimap2 package*](https://lh3.github.io/minimap2/) (v2.30) and the [*samtools package*](https://www.htslib.org) (v1.22.1).
+The heavy and light chain reads were annotated using the [*riot package*](https://github.com/NaturalAntibody/riot_na) (v4.0.2).
+
+```{r}
+# Read in data
+#| include: false
+
+# Get list of files
+annotated_files <- list.files(
+    path = "./results/3. annotated reads",
+    pattern = "\\.csv$",
+    full.names = TRUE
+)
+
+# Read in files
+annotated_list <- lapply(annotated_files, fread, na.strings = c("N/A"))
+# Add in barcode from file name as id col
+names(annotated_list) <- str_replace(basename(annotated_files), "_annot_.*\\.csv", "")
+
+# Combine datasets together and rename columns
+combined_annotated <- rbindlist(annotated_list, idcol = "sample_id", fill = TRUE)
+```
