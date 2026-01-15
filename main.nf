@@ -8,10 +8,12 @@ nextflow.preview.types = true
 
 // Pipeline parameters
 params {
-	read_files: String
+	read_dir: String
+	sample_sheet: Path
 	phagemid_ref: Path
 	matchbox_script: Path
 	matchbox_parameters: Path
+	barcode_dir: Boolean
 	help: Boolean
 	enable_conda: Boolean
 }
@@ -19,6 +21,7 @@ params {
 // Import processes or subworkflows to be run in the workflow
 include { header } from './modules/header'
 include { validate_params } from './modules/validate_params'
+include { parse_sample_sheet } from './modules/file_import'
 include { helpMessage } from './modules/help'
 include { minimap2 } from './modules/minimap2'
 include { samtools } from './modules/samtools'
@@ -52,47 +55,49 @@ workflow {
 	header()
 
 	// Validate parameters
-	paths_to_validate = [params.read_files, params.phagemid_ref, params.matchbox_script, params.matchbox_parameters].join(",")
+	paths_to_validate = [params.read_dir, params.phagemid_ref, params.matchbox_script, params.matchbox_parameters].join(",")
     validate_params(paths_to_validate)
 
 	// Create channel for the read files and extract the barcode from file name as the sample name
-	files = channel.fromPath(params.read_files)
+	files = channel.fromPath(params.read_dir)
 	.map {
 		file -> tuple(get_name(file), file)
 	}
 
-	// QC: Identify % aligning to the reference (gDNA/helper phage contamination)
-	minimap_out = minimap2(files, params.phagemid_ref)
+	sample = parse_sample_sheet(params.read_dir, params.sample_sheet, params.barcode_dir)
 
-	// Convert and index the SAM file format to BAM file format
-	sam_out = samtools(minimap_out)
+	// // QC: Identify % aligning to the reference (gDNA/helper phage contamination)
+	// minimap_out = minimap2(files, params.phagemid_ref)
 
-	// Extract heavy and light chain pairs from the reads
-	// Match and output all
-	matchbox_out_all = matchbox(files, params.matchbox_script, 
-		params.matchbox_parameters, "all")
-	// Match and output only the best match
-	matchbox_out_best = matchbox2(files, params.matchbox_script, 
-		params.matchbox_parameters, "all-best")
+	// // Convert and index the SAM file format to BAM file format
+	// sam_out = samtools(minimap_out)
 
-	// Annotate heavy and light chain sequences
-	riot_out_best = riot(matchbox_out_best.matchbox_files)
-	riot_out_all = riot2(matchbox_out_all.matchbox_files)
+	// // Extract heavy and light chain pairs from the reads
+	// // Match and output all
+	// matchbox_out_all = matchbox(files, params.matchbox_script, 
+	// 	params.matchbox_parameters, "all")
+	// // Match and output only the best match
+	// matchbox_out_best = matchbox2(files, params.matchbox_script, 
+	// 	params.matchbox_parameters, "all-best")
+
+	// // Annotate heavy and light chain sequences
+	// riot_out_best = riot(matchbox_out_best.matchbox_files)
+	// riot_out_all = riot2(matchbox_out_all.matchbox_files)
 
 
-	// Publish outputs
-    publish:
-	bam_file = sam_out.aligned_sorted_read
-	bam_index = sam_out.index
-	aligned_stats = sam_out.aligned_stats
-	matchbox_stats_best = matchbox_out_best.matchbox_stats
-	matchbox_files_best = matchbox_out_best.matchbox_files
-	matchbox_stats_all = matchbox_out_all.matchbox_stats
-	matchbox_files_all = matchbox_out_all.matchbox_files
-	annotated_hc_best = riot_out_best.annot_heavy
-	annotated_lc_best = riot_out_best.annot_light
-	annotated_hc_all = riot_out_all.annot_heavy
-	annotated_lc_all = riot_out_all.annot_light
+	// // Publish outputs
+    // publish:
+	// bam_file = sam_out.aligned_sorted_read
+	// bam_index = sam_out.index
+	// aligned_stats = sam_out.aligned_stats
+	// matchbox_stats_best = matchbox_out_best.matchbox_stats
+	// matchbox_files_best = matchbox_out_best.matchbox_files
+	// matchbox_stats_all = matchbox_out_all.matchbox_stats
+	// matchbox_files_all = matchbox_out_all.matchbox_files
+	// annotated_hc_best = riot_out_best.annot_heavy
+	// annotated_lc_best = riot_out_best.annot_light
+	// annotated_hc_all = riot_out_all.annot_heavy
+	// annotated_lc_all = riot_out_all.annot_light
 
 	// Completion message
 	onComplete:
@@ -116,39 +121,39 @@ workflow {
     log.error "Error: Pipeline execution stopped with the following message: ${workflow.errorMessage}".stripIndent()
 }
 
-// Set output paths
-output {
-	bam_file {
-        path "1_aligned_reads/bam_files"
-    }
-	bam_index {
-        path "1_aligned_reads/bam_files"
-    }
-	aligned_stats {
-		path "1_aligned_reads/stats"
-	}
-	matchbox_stats_best {
-		path "2_extracted_reads/best/counts"
-	}
-	matchbox_files_best {
-		path "2_extracted_reads/best/fasta_files"
-	}
-	matchbox_stats_all {
-		path "2_extracted_reads/all/counts"
-	}
-	matchbox_files_all {
-		path "2_extracted_reads/all/fasta files"
-	}
-	annotated_hc_best {
-		path "3_annotated_reads/best"
-	}
-	annotated_lc_best {
-		path "3_annotated_reads/best"
-	}
-	annotated_hc_all {
-		path "3_annotated_reads/all"
-	}
-	annotated_lc_all {
-		path "3_annotated_reads/best"
-	}
+// // Set output paths
+// output {
+// 	bam_file {
+//         path "1_aligned_reads/bam_files"
+//     }
+// 	bam_index {
+//         path "1_aligned_reads/bam_files"
+//     }
+// 	aligned_stats {
+// 		path "1_aligned_reads/stats"
+// 	}
+// 	matchbox_stats_best {
+// 		path "2_extracted_reads/best/counts"
+// 	}
+// 	matchbox_files_best {
+// 		path "2_extracted_reads/best/fasta_files"
+// 	}
+// 	matchbox_stats_all {
+// 		path "2_extracted_reads/all/counts"
+// 	}
+// 	matchbox_files_all {
+// 		path "2_extracted_reads/all/fasta files"
+// 	}
+// 	annotated_hc_best {
+// 		path "3_annotated_reads/best"
+// 	}
+// 	annotated_lc_best {
+// 		path "3_annotated_reads/best"
+// 	}
+// 	annotated_hc_all {
+// 		path "3_annotated_reads/all"
+// 	}
+// 	annotated_lc_all {
+// 		path "3_annotated_reads/best"
+// 	}
 }

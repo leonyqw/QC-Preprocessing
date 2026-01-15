@@ -18,7 +18,8 @@ Cite this pipeline @
 =======================================================================================
 Workflow run parameters 
 =======================================================================================
-read directory     : ${params.read_files}
+read directory     : ${params.read_dir}
+sample sheet       : ${params.sample_sheet}
 reference          : ${params.phagemid_ref}
 matchbox script    : ${params.matchbox_script}
 matchbox parameters: ${params.matchbox_parameters}
