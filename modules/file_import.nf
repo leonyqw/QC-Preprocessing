@@ -18,9 +18,14 @@ process concat_reads {
     sample = tuple(barcode, file("${barcode}_merged.${extn}"))
 
     script:
+
+    println(files)
+    println(files.size())
     
     // Check if all files are the same format, or if files are not found
-    if( files.every { format1 -> format1.name.endsWith('.fastq.gz') } )
+    if( files.size() == 0 )
+        error "No files found for ${barcode}"
+    else if( files.every { format1 -> format1.name.endsWith('.fastq.gz') } )
         extn = 'fastq.gz'
     else if( files.every { format2 -> format2.name.endsWith('.fastq') } )
         extn = 'fastq'
@@ -28,8 +33,6 @@ process concat_reads {
         extn = 'fq.gz'
     else if( files.every { format4 -> format4.name.endsWith('.fq') } )
         extn = 'fq'
-    else if( files.size() == 0 )
-        error "No files found for ${barcode}"
     else
         error "Concatentation of mixed filetypes is unsupported"
 
