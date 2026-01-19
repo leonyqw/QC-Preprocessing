@@ -7,3 +7,4 @@ data/
 results/
 report/report_files
 report/dashboard_files
+report/*.html
