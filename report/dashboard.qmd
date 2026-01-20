@@ -18,6 +18,8 @@ library(ggiraph)
 library(plotly)
 library(formattable)
 library(DT)
+library(bsicons)
+library(bslib)
 ```
 
 # Aligned Reads
@@ -28,7 +30,7 @@ library(DT)
 
 # Get list of files
 files <- list.files(
-    path = "./results/1_aligned_reads/stats",
+    path = "./results/2_aligned_reads/stats",
     pattern = "\\.tsv$",
     full.names = TRUE
 )
@@ -39,10 +41,14 @@ data_list <- lapply(files, fread, na.strings = c("N/A"))
 names(data_list) <- str_replace(basename(files), "_alignment_stats.tsv", "")
 
 # Combine datasets together and rename columns
-combined_aligned_stats <- rbindlist(data_list, idcol = "sample_id", fill = TRUE)
+combined_aligned_stats <- rbindlist(data_list, idcol = "barcode", fill = TRUE)
 combined_aligned_stats <- rename(combined_aligned_stats,
     "QC_pass" = V1, "QC_fail" = V2, "category" = V3
 )
+```
+
+```{r}
+# Parse dataset
 
 # Rename and extract required rows
 rows_required <- list("total", "mapped", "mapped %", "primary", "secondary", "supplementary")
@@ -51,26 +57,22 @@ combined_aligned_stats <- combined_aligned_stats %>%
         "total", category
     )) %>%
     select(-QC_fail) %>%
-    mutate(QC_pass, ifelse(str_detect(QC_pass, "%"),
+    mutate(QC_pass = ifelse(str_detect(QC_pass, "%"),
         as.numeric(str_replace(QC_pass, "%", "")),
         as.numeric(QC_pass)
     )) %>%
     filter(category %in% rows_required)
 
-combined_aligned_stats_wide <- combined_aligned_stats %>%
-    pivot_wider(
-        id_cols = sample_id,
-        names_from = category,
-        values_from = QC_pass
-    )
+# Join in sample sheet information
+sample_sheet <- read_csv("./data/reference_files/sample_sheet.csv")
 ```
 
 ## Row 
 ```{r}
 #| content: valuebox
-#| title: "Samples"
+#| title: "Total samples"
 samples <- combined_aligned_stats %>%
-    distinct(sample_id) %>%
+    distinct(barcode) %>%
     summarise(n = n()) %>%
     as.numeric()
 
@@ -84,10 +86,10 @@ list(
 ```{r}
 #| content: valuebox
 #| title: "Total reads"
-total_reads <- sum(as.numeric(combined_aligned_stats_wide$total))
+total_reads <- sum(as.numeric(combined_aligned_stats$QC_pass[combined_aligned_stats$category == "total"]))
 
 list(
-    icon = "file-earmark-medical",
+    icon = "file-earmark",
     color = "info",
     value = total_reads
 )
@@ -95,6 +97,21 @@ list(
 
 ## Row {.flow}
 
+```{r}
+#| title: "Aligned samples"
+
+# Make table
+combined_aligned_stats_wide <- combined_aligned_stats %>%
+    pivot_wider(
+        id_cols = barcode,
+        names_from = category,
+        values_from = QC_pass
+    )
+
+datatable(combined_aligned_stats_wide)
+```
+
+## Row
 ```{r}
 #| title: plot 1
 #| padding: 0px
