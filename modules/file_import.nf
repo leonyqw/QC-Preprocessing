@@ -50,7 +50,7 @@ workflow parse_sample_sheet {
     .splitCsv(header: true)
     .map { row -> row.barcode }
 
-    // Get list of files for each barcode
+    // Get list of files for each barcode from the read directory, as well as any files in subdirectories that match
     barcode_files = barcodes
     .map { barcode -> tuple(barcode, files("${read_dir}/**${barcode}*.{fastq, fq, fastq.gz, fq.gz}")) }
 
